@@ -1,0 +1,29 @@
+{
+  "wd": "/home/gmor/Documents/GitHub/beedis",
+  "datadis": {
+    "username": "B25600800",
+    "password": "Yuzape8914!",
+    "date_ini": "2018-01-01",
+    "date_end": "2020-06-30"
+  },
+  "darksky": {
+    "apikey": "861fe2c5c052c028a60a834ab6ab324d",
+    "meteo_header": ["time", "apparentTemperature", "cloudCover", "dewPoint", "humidity", "icon", "ozone",
+                    "precipAccumulation","precipIntensity", "precipIntensityError", "precipProbability", "precipType",
+                    "pressure", "summary", "temperature", "uvIndex", "visibility", "windBearing", "windGust",
+                    "windSpeed", "lat", "lon", "stationId"],
+    "processes": 8
+  },
+  "mongo": {
+    "user": "gmor",
+    "password": "yuzape8914",
+    "db": "beedis",
+    "host": "gmor-3950x",
+    "collections": {
+      "cadaster": "cadaster_agg_by",
+      "socio_economical": "socio_economical_agg_by",
+      "datadis": "consumption_data_by_postalCode",
+      "meteo": "meteo_data_by_postalCode"
+    }
+  }
+}
