@@ -18,10 +18,10 @@ contract = datadis.datadis_query(ENDPOINTS.GET_CONTRACT, cups=supplies[0]['cups'
                                  distributor_code=supplies[0]['distributorCode'])
 consumption = datadis.datadis_query(ENDPOINTS.GET_CONSUMPTION, cups=supplies[0]['cups'],
                                     distributor_code=supplies[0]['distributorCode'],
-                                    start_date=datetime(2020, 8, 1), end_date=datetime(2021, 3, 30),
+                                    start_date=datetime(2020, 8, 1), end_date=datetime.now(),
                                     measurement_type="0",
                                     point_type=supplies[0]['pointType'])
 
 max_power = datadis.datadis_query(ENDPOINTS.GET_MAX_POWER, cups=supplies[0]['cups'],
-                                  distributor_code=supplies[0]['distributorCode'], start_date=datetime(2020, 8, 1),
-                                  end_date=datetime(2021, 3, 30))
+                                  distributor_code=supplies[0]['distributorCode'], start_date=datetime(2021, 1, 1),
+                                  end_date=datetime(2021, 2, 1))

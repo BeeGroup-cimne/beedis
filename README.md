@@ -37,7 +37,8 @@ GET_CONTRACT
 
 
 GET_CONSUMPTION
-
+    returns the consumption of the supply, the data will be based on opening times:
+    EX: consumption indicated at "02:00" will belong to the consumption between 02:00 and 03:00
     params:
         - cups: str *
         - distributorCode: str *

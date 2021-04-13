@@ -2,7 +2,12 @@ import time
 from enum import Enum
 import requests
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
+import pandas as pd
+
+
+def __dummy_parse__(response: dict) -> dict:
+    return response
 
 
 def __contract_params__(cups: str, distributor_code: str, authorized_nif: str = ''):
@@ -44,6 +49,22 @@ def __consumption_params__(cups: str, distributor_code: str, start_date: datetim
     }
 
 
+def __consumption_parse__(result: dict) -> dict:
+    df = pd.DataFrame(result)
+    df['date'] = pd.to_datetime(df.date)
+    df['time'] = pd.to_timedelta(df.time + ":00") - timedelta(hours=1)
+    df['datetime'] = pd.to_datetime(df.date+df.time)
+    df = df.set_index('datetime')
+    df = df.tz_localize("Europe/Madrid", ambiguous="infer").tz_convert("UTC")
+    df = df.sort_index()
+    df = df.drop(["date", "time"], 1)
+    df = df.reset_index()
+    data = df.to_dict(orient="records")
+    for i in data:
+        i.update({"datetime": i['datetime'].to_pydatetime()})
+    return data
+
+
 def __public_params__(start_date: datetime, end_date: datetime, page: int, community: str, page_size: int = 200,
                       measure_point_type: str = '', province_municipality: str = '', distributor: str = '',
                       fare: str = '', postal_code: str = '', economic_sector: str = '', tension: str = '',
@@ -71,22 +92,27 @@ class ENDPOINTS(Enum):
     class GET_SUPPLIES(Enum):
         url = 'https://datadis.es/api-private/api/get-supplies'
         params = __supplies_params__
+        parse = __dummy_parse__
 
     class GET_CONTRACT(Enum):
         url = 'https://datadis.es/api-private/api/get-contract-detail'
         params = __contract_params__
+        parse = __dummy_parse__
 
     class GET_CONSUMPTION(Enum):
         url = 'https://datadis.es/api-private/api/get-consumption-data'
         params = __consumption_params__
+        parse = __consumption_parse__
 
     class GET_MAX_POWER(Enum):
         url = 'https://datadis.es/api-private/api/get-max-power'
         params = __get_max_power__
+        parse = __dummy_parse__
 
     class GET_PUBLIC(Enum):
         url = 'https://datadis.es/api-public/api-search'
         params = __public_params__
+        parse = __dummy_parse__
 
 
 class datadis(object):
@@ -150,6 +176,7 @@ class datadis(object):
         endpoint_enum = endpoint.value
         url = endpoint_enum.url.value
         params = endpoint_enum.params(**kwargs)
+        parse = endpoint_enum.parse
         if 'page' in params:
             datadis_dataset = []
             more_data = True
@@ -167,4 +194,4 @@ class datadis(object):
         else:
             response = datadis.__datadis_request__(url, params=params)
             data = json.loads(response.text.encode("latin_1").decode("utf_8"))
-        return data
+        return parse(data)
