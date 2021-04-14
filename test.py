@@ -6,7 +6,7 @@ import pandas as pd
 f = open("config.json", "r")
 config = json.load(f)
 
-datadis.connection(config['datadis']['username'], config['datadis']['password'])
+datadis.connection(config['datadis']['username'], config['datadis']['password'], timezone="UTC")
 data = datadis.datadis_query(ENDPOINTS.GET_PUBLIC, start_date=datetime(2020, 10, 1), end_date=datetime(2020, 10, 31),
                              page=0,
                              community="09", postal_code="25001")

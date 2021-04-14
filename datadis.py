@@ -150,18 +150,19 @@ class datadis(object):
     def connection(cls, username: str, password: str, timezone="UTC"):
         cls.username = username
         cls.password = password
-        cls.session.headers = datadis.__datadis_headers__()
+
         cls.timezone = timezone
         cls.__login__()
 
     @classmethod
     def __login__(cls):
         cls.session = requests.Session()
+        cls.session.headers = datadis.__datadis_headers__()
         cls.session.get("https://datadis.es/nikola-auth/login")
         cls.session.post("https://datadis.es/nikola-auth/login",
-                         data={"username": username, "password": password})
+                         data={"username": cls.username, "password": cls.password})
         cls.session.post('https://datadis.es/nikola-auth/tokens/login', headers=cls.session.headers,
-                         params=(('username', username), ('password', password)))
+                         params=(('username', cls.username), ('password', cls.password)))
 
     @classmethod
     def __datadis_request__(cls, url, params):

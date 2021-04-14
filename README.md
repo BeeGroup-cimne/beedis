@@ -11,7 +11,7 @@ from datadis import datadis, ENDPOINTS
 - connect using dadadis credentials
 
 ```
-datadis.connection('username', 'password')
+datadis.connection('username', 'password', timezone="UTC")
 ```
 
 - use the different endpoints available in the datadis api
