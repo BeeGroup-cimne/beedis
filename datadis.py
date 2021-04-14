@@ -5,6 +5,8 @@ import json
 from datetime import datetime, timedelta
 import pandas as pd
 
+timezone_source = "Europe/Madrid"
+
 
 def __dummy_parse__(response: dict) -> dict:
     return response
@@ -50,12 +52,13 @@ def __consumption_params__(cups: str, distributor_code: str, start_date: datetim
 
 
 def __consumption_parse__(result: dict) -> dict:
+    timezone = datadis.timezone
     df = pd.DataFrame(result)
     df['date'] = pd.to_datetime(df.date)
     df['time'] = pd.to_timedelta(df.time + ":00") - timedelta(hours=1)
     df['datetime'] = pd.to_datetime(df.date+df.time)
     df = df.set_index('datetime')
-    df = df.tz_localize("Europe/Madrid", ambiguous="infer").tz_convert("UTC")
+    df = df.tz_localize(timezone_source, ambiguous="infer").tz_convert(timezone)
     df = df.sort_index()
     df = df.drop(["date", "time"], 1)
     df = df.reset_index()
@@ -119,6 +122,7 @@ class datadis(object):
     session = None
     username = None
     password = None
+    timezone = None
 
     @staticmethod
     def __datadis_headers__() -> dict:
@@ -143,11 +147,16 @@ class datadis(object):
 
     # 'Content-Type': 'application/json'
     @classmethod
-    def connection(cls, username: str, password: str):
+    def connection(cls, username: str, password: str, timezone="UTC"):
         cls.username = username
         cls.password = password
-        cls.session = requests.Session()
         cls.session.headers = datadis.__datadis_headers__()
+        cls.timezone = timezone
+        cls.__login__()
+
+    @classmethod
+    def __login__(cls):
+        cls.session = requests.Session()
         cls.session.get("https://datadis.es/nikola-auth/login")
         cls.session.post("https://datadis.es/nikola-auth/login",
                          data={"username": username, "password": password})
@@ -167,7 +176,7 @@ class datadis(object):
                     raise Exception("Failed with too many retries")
                 del cls.session
                 time.sleep(2)
-                datadis.connection(cls.username, cls.password)
+                cls.__login__()
                 response = cls.session.get(url, params=params)
         return response
 
