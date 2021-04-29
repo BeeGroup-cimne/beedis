@@ -8,7 +8,7 @@ import pandas as pd
 timezone_source = "Europe/Madrid"
 
 
-def __dummy_parse__(response: dict) -> dict:
+def __dummy_parse__(response: list) -> list:
     return response
 
 
@@ -51,7 +51,7 @@ def __consumption_params__(cups: str, distributor_code: str, start_date: datetim
     }
 
 
-def __consumption_parse__(result: dict) -> dict:
+def __consumption_parse__(result: list) -> list:
     timezone = datadis.timezone
     df = pd.DataFrame(result)
     if not df.empty:

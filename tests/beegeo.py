@@ -2,7 +2,7 @@
 import progressbar as progressbar
 from dateutil.relativedelta import relativedelta
 import pandas as pd
-from datadis import datadis, ENDPOINTS
+from src.beedis.datadis import datadis, ENDPOINTS
 import os
 import datetime as dt
 import time
@@ -69,7 +69,7 @@ def datadis_query(wd, config):
             bar.update(i)
 
 
-with open('config.json') as config_file:
+with open('../config.json') as config_file:
     configs = json.load(config_file)
 
 # Generate by default all the subdirectories

@@ -1,9 +1,9 @@
-from datadis import datadis, ENDPOINTS
+from src.beedis.datadis import datadis, ENDPOINTS
 import json
 from datetime import datetime
 import pandas as pd
 
-f = open("config.json", "r")
+f = open("../config.json", "r")
 config = json.load(f)
 
 datadis.connection(config['datadis']['username'], config['datadis']['password'], timezone="UTC")
