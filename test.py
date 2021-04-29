@@ -18,7 +18,7 @@ contract = datadis.datadis_query(ENDPOINTS.GET_CONTRACT, cups=supplies[0]['cups'
                                  distributor_code=supplies[0]['distributorCode'])
 consumption = datadis.datadis_query(ENDPOINTS.GET_CONSUMPTION, cups=supplies[0]['cups'],
                                     distributor_code=supplies[0]['distributorCode'],
-                                    start_date=datetime(2020, 8, 1), end_date=datetime.now(),
+                                    start_date=datetime(2021, 4, 29), end_date=datetime.now(),
                                     measurement_type="0",
                                     point_type=supplies[0]['pointType'])
 

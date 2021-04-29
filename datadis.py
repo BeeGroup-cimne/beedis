@@ -54,18 +54,21 @@ def __consumption_params__(cups: str, distributor_code: str, start_date: datetim
 def __consumption_parse__(result: dict) -> dict:
     timezone = datadis.timezone
     df = pd.DataFrame(result)
-    df['date'] = pd.to_datetime(df.date)
-    df['time'] = pd.to_timedelta(df.time + ":00") - timedelta(hours=1)
-    df['datetime'] = pd.to_datetime(df.date+df.time)
-    df = df.set_index('datetime')
-    df = df.tz_localize(timezone_source, ambiguous="infer").tz_convert(timezone)
-    df = df.sort_index()
-    df = df.drop(["date", "time"], 1)
-    df = df.reset_index()
-    data = df.to_dict(orient="records")
-    for i in data:
-        i.update({"datetime": i['datetime'].to_pydatetime()})
-    return data
+    if not df.empty:
+        df['date'] = pd.to_datetime(df.date)
+        df['time'] = pd.to_timedelta(df.time + ":00") - timedelta(hours=1)
+        df['datetime'] = pd.to_datetime(df.date+df.time)
+        df = df.set_index('datetime')
+        df = df.tz_localize(timezone_source, ambiguous="infer").tz_convert(timezone)
+        df = df.sort_index()
+        df = df.drop(["date", "time"], 1)
+        df = df.reset_index()
+        data = df.to_dict(orient="records")
+        for i in data:
+            i.update({"datetime": i['datetime'].to_pydatetime()})
+        return data
+    else:
+        return list()
 
 
 def __public_params__(start_date: datetime, end_date: datetime, page: int, community: str, page_size: int = 200,
