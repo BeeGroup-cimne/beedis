@@ -4,6 +4,8 @@ import requests
 import json
 from datetime import datetime, timedelta
 import pandas as pd
+from bs4 import BeautifulSoup
+
 
 timezone_source = "Europe/Madrid"
 
@@ -162,26 +164,31 @@ class datadis(object):
         cls.session = requests.Session()
         cls.session.headers = datadis.__datadis_headers__()
         cls.session.get("https://datadis.es/nikola-auth/login")
-        cls.session.post("https://datadis.es/nikola-auth/login",
-                         data={"username": cls.username, "password": cls.password})
-        cls.session.post('https://datadis.es/nikola-auth/tokens/login', headers=cls.session.headers,
-                         params=(('username', cls.username), ('password', cls.password)))
+        first_login = cls.session.post("https://datadis.es/nikola-auth/login",
+                                       data={"username": cls.username, "password": cls.password})
+
+        soup = BeautifulSoup(first_login.text, 'html.parser')
+        error = soup.find("label", class_='error')
+        if error:
+            raise PermissionError(error.text.strip())
+
+        second_login = cls.session.post('https://datadis.es/nikola-auth/tokens/login', headers=cls.session.headers,
+                                        params=(('username', cls.username), ('password', cls.password)))
+        if not second_login.ok:
+            raise PermissionError("Invalid user_password for second login")
 
     @classmethod
     def __datadis_request__(cls, url, params):
         response = cls.session.get(url, params=params)
         if response.status_code != 200 or response.text[0:24] == '\n\n\n\n\n\n\n\n\n<!DOCTYPE html>':
-            retries = 0
-            while 'errorPass' in cls.session.cookies.get_dict() or \
-                    response.status_code != 200 or \
-                    response.text[0:24] == '\n\n\n\n\n\n\n\n\n<!DOCTYPE html>':
-                retries += 1
-                if retries >= 20:
-                    raise Exception("Failed with too many retries")
-                del cls.session
-                time.sleep(2)
-                cls.__login__()
-                response = cls.session.get(url, params=params)
+            del cls.session
+            time.sleep(1)
+            cls.__login__()
+            response = cls.session.get(url, params=params)
+            if response.status_code != 200:
+                raise ConnectionError(f"The response returned : {response.status_code}")
+            elif response.text[0:24] == '\n\n\n\n\n\n\n\n\n<!DOCTYPE html>':
+                raise ConnectionError(f"The response returned : Error Message")
         return response
 
     @classmethod

@@ -5,7 +5,7 @@ This library is used to obtain the data available from datadis at the current ve
 
 - import the library
 ```
-from datadis import datadis, ENDPOINTS
+from beedis import datadis, ENDPOINTS
 ```
 
 - connect using dadadis credentials
@@ -24,11 +24,13 @@ datadis.datadis_query(endpoint, **kwargs)
 params with * are required
 
 GET_SUPPLIES:
-    
+> Returns the supplies of the user or the ones of the authorized nif
+
     params: 
         - authorizedNif : str
 
 GET_CONTRACT
+> Returns the contracts of the user supplies or the ones of the authorized nif supplies
 
     params:
         - cups: str *
@@ -37,9 +39,13 @@ GET_CONTRACT
 
 
 GET_CONSUMPTION
-    returns the consumption of the supply, the data will be based on opening times:
-    EX: consumption indicated at "02:00" will belong to the consumption between 02:00 and 03:00
-    params:
+> Returns the consumption of the supply, 
+>
+> the data will be based on opening times: EX: consumption indicated at "02:00" will belong to the consumption between 02:00 and 03:00
+> 
+> measurement type must be "0" for hourly data or "1" for quarty hourly data
+
+       params:
         - cups: str *
         - distributorCode: str *
         - start_date: datetime *
@@ -48,7 +54,11 @@ GET_CONSUMPTION
         - pointType: str *
         - authorizedNif: str
 
+
+
 GET_MAX_POWER
+> Returns the max power of the supply, 
+ 
 
     params:
         - cups: str *
@@ -58,6 +68,7 @@ GET_MAX_POWER
         - authorizedNif: str
 
 GET_PUBLIC
+> Returns the public data aggregated by different fields
     
     params: 
         - start_date: datetime *
