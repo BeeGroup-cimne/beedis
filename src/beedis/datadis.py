@@ -128,7 +128,7 @@ class datadis(object):
     username = None
     password = None
     timezone = None
-
+    timeout = None
     @staticmethod
     def __datadis_headers__() -> dict:
         return {
@@ -152,10 +152,10 @@ class datadis(object):
 
     # 'Content-Type': 'application/json'
     @classmethod
-    def connection(cls, username: str, password: str, timezone="UTC"):
+    def connection(cls, username: str, password: str, timezone="UTC", timeout=None):
         cls.username = username
         cls.password = password
-
+        cls.timeout = timeout
         cls.timezone = timezone
         cls.__login__()
 
@@ -163,7 +163,7 @@ class datadis(object):
     def __login__(cls):
         cls.session = requests.Session()
         cls.session.headers = datadis.__datadis_headers__()
-        cls.session.get("https://datadis.es/nikola-auth/login")
+        cls.session.get("https://datadis.es/nikola-auth/login", timeout=cls.timeout)
         first_login = cls.session.post("https://datadis.es/nikola-auth/login",
                                        data={"username": cls.username, "password": cls.password})
 
@@ -178,13 +178,13 @@ class datadis(object):
             raise PermissionError("Invalid user_password for second login")
 
     @classmethod
-    def __datadis_request__(cls, url, params):
-        response = cls.session.get(url, params=params)
+    def __datadis_request__(cls, url, params, timeout=None):
+        response = cls.session.get(url, params=params, timeout=cls.timeout)
         if response.status_code != 200 or response.text[0:24] == '\n\n\n\n\n\n\n\n\n<!DOCTYPE html>':
             del cls.session
             time.sleep(1)
             cls.__login__()
-            response = cls.session.get(url, params=params)
+            response = cls.session.get(url, params=params, timeout=cls.timeout)
             if response.status_code != 200:
                 raise ConnectionError(f"The response returned : {response.status_code}")
             elif response.text[0:24] == '\n\n\n\n\n\n\n\n\n<!DOCTYPE html>':
