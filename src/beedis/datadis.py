@@ -73,7 +73,7 @@ def __consumption_parse__(result: list) -> list:
         return list()
 
 
-def __public_params__(start_date: datetime, end_date: datetime, page: int, community: str, page_size: int = 200,
+def __public_params__(start_date: datetime, end_date: datetime, page: int, community: str, page_size: int = 2000,
                       measure_point_type: str = '', province_municipality: str = '', distributor: str = '',
                       fare: str = '', postal_code: str = '', economic_sector: str = '', tension: str = '',
                       time_discrimination: str = '',
