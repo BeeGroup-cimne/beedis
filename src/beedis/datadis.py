@@ -57,15 +57,24 @@ def __consumption_parse__(result: list) -> list:
     timezone = datadis.timezone
     df = pd.DataFrame(result)
     if not df.empty:
+        df_final = pd.DataFrame()
         df['date'] = pd.to_datetime(df.date)
         df['time'] = pd.to_timedelta(df.time + ":00") - timedelta(hours=1)
-        df['datetime'] = pd.to_datetime(df.date+df.time)
-        df = df.set_index('datetime')
-        df = df.tz_localize(timezone_source, ambiguous="infer").tz_convert(timezone)
-        df = df.sort_index()
-        df = df.drop(["date", "time"], 1)
-        df = df.reset_index()
-        data = df.to_dict(orient="records")
+        for day, df_tmp in df.groupby("date"):
+            try:
+                df_tmp['datetime'] = pd.to_datetime(df_tmp.date+df_tmp.time)
+                df_tmp = df_tmp.set_index('datetime')
+                df_tmp = df_tmp.tz_localize(timezone_source, ambiguous="infer").tz_convert(timezone)
+                df_tmp = df_tmp.sort_index()
+                df_tmp = df_tmp.drop(["date", "time"], 1)
+                df_tmp = df_tmp.reset_index()
+                df_final = df_final.append(df_tmp)
+            except Exception as e:
+                print(f"There was an error in the {day}: {e}")
+        df_final.set_index('datetime', inplace=True)
+        df_final.sort_index(inplace=True)
+        df_final.reset_index(inplace=True)
+        data = df_final.to_dict(orient="records")
         for i in data:
             i.update({"datetime": i['datetime'].to_pydatetime()})
         return data
