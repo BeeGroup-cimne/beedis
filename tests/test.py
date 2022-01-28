@@ -23,5 +23,5 @@ consumption = datadis.datadis_query(ENDPOINTS.GET_CONSUMPTION, cups=supplies[0][
                                     point_type=supplies[0]['pointType'])
 
 max_power = datadis.datadis_query(ENDPOINTS.GET_MAX_POWER, cups=supplies[0]['cups'],
-                                  distributor_code=supplies[0]['distributorCode'], start_date=datetime(2021, 1, 1),
-                                  end_date=datetime(2021, 2, 1))
+                                  distributor_code=supplies[0]['distributorCode'], start_date=datetime(2021, 8, 1),
+                                  end_date=datetime(2021, 12, 1))
