@@ -66,7 +66,6 @@ def __max_power_parse__(result: list) -> list:
                 df_tmp['datetime'] = pd.to_datetime(df_tmp.date+df_tmp.time)
                 df_tmp = df_tmp.set_index('datetime')
                 df_tmp = df_tmp.tz_localize(timezone_source, ambiguous="infer").tz_convert(timezone)
-                df_tmp = df_tmp.sort_index()
                 df_tmp = df_tmp.drop(["date", "time"], 1)
                 df_tmp = df_tmp.reset_index()
                 df_tmp = df_tmp.pivot(index="month", columns="period", values=["datetime", "maxPower"])
@@ -75,6 +74,8 @@ def __max_power_parse__(result: list) -> list:
             except Exception as e:
                 print(f"There was an error in the {day}: {e}")
         df_final.sort_index(inplace=True)
+        df_final.reset_index(inplace=True)
+        df_final.rename({"month": "datetime"}, axis=1, inplace=True)
         data = df_final.to_dict(orient="records")
         for i in data:
             for f in [x for x in i.keys() if x.startswith("datetime")]:
