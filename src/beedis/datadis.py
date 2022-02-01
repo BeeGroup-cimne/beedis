@@ -68,18 +68,25 @@ def __max_power_parse__(result: list) -> list:
                 df_tmp = df_tmp.tz_localize(timezone_source, ambiguous="infer").tz_convert(timezone)
                 df_tmp = df_tmp.drop(["date", "time"], 1)
                 df_tmp = df_tmp.reset_index()
-                df_tmp = df_tmp.pivot(index="month", columns="period", values=["datetime", "maxPower"])
-                df_tmp.columns = [f"{c}_period_{p}" for c, p in df_tmp.columns]
-                df_final = df_final.append(df_tmp)
+                df_tmp2 = df_tmp.pivot(index="month", columns="period", values=["datetime", "maxPower"])
+                df_tmp2['cups'] = df_tmp.cups.unique()[0]
+                df_tmp2.columns = [f"{cp[0]}_period_{cp[1]}" if cp[1] != '' else cp[0] for cp in df_tmp2.columns]
+                df_final = df_final.append(df_tmp2)
             except Exception as e:
-                print(f"There was an error in the {day}: {e}")
+                print(f"There was an error in the {month}: {e}")
         df_final.sort_index(inplace=True)
         df_final.reset_index(inplace=True)
         df_final.rename({"month": "datetime"}, axis=1, inplace=True)
         data = df_final.to_dict(orient="records")
         for i in data:
-            for f in [x for x in i.keys() if x.startswith("datetime")]:
-                i[f] = i[f].to_pydatetime()
+            for f in [x for x in i.keys() if x.startswith("datetime_")]:
+                if pd.isnull(i[f]):
+                    period = f.split("_")[2]
+                    i.pop(f"datetime_period_{period}")
+                    i.pop(f"maxPower_period_{period}")
+                else:
+                    i[f] = i[f].to_pydatetime()
+            i['datetime'] = i['datetime'].to_pydatetime()
         return data
     else:
         return list()
