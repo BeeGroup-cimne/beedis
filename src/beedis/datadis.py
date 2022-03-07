@@ -70,7 +70,7 @@ def __max_power_parse__(result: list) -> list:
                 df_tmp = df_tmp.reset_index()
                 df_tmp2 = df_tmp.pivot(index="month", columns="period", values=["datetime", "maxPower"])
                 df_tmp2['cups'] = df_tmp.cups.unique()[0]
-                df_tmp2.columns = [f"{cp[0]}_period_{cp[1]}" if cp[1] != '' else cp[0] for cp in df_tmp2.columns]
+                df_tmp2.columns = [f"{cp[0]}_period_{cp[1]}" for cp in df_tmp2.columns]
                 df_final = df_final.append(df_tmp2)
             except Exception as e:
                 print(f"There was an error in the {month}: {e}")
