@@ -45,8 +45,8 @@ def __consumption_params__(cups: str, distributor_code: str, start_date: datetim
     return {
         "cups": cups,
         "distributorCode": distributor_code,
-        "startDate": start_date.strftime("%Y/%m/%d"),
-        "endDate": end_date.strftime("%Y/%m/%d"),
+        "startDate": start_date.strftime("%Y/%m"),
+        "endDate": end_date.strftime("%Y/%m"),
         "measurementType": measurement_type,
         "pointType": point_type,
         "authorizedNif": authorized_nif
@@ -234,7 +234,7 @@ class datadis(object):
             cls.__login__()
             response = cls.session.get(url, params=params, timeout=cls.timeout)
             if response.status_code != 200:
-                raise ConnectionError(f"The response returned : {response.status_code}")
+                raise ConnectionError(f"The response returned : {response.status_code}: {response.text}")
             elif response.text[0:24] == '\n\n\n\n\n\n\n\n\n<!DOCTYPE html>':
                 raise ConnectionError(f"The response returned : Error Message")
         return response
