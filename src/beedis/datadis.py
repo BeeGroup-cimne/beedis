@@ -66,14 +66,16 @@ def __max_power_parse__(result: list) -> list:
                 df_tmp['datetime'] = pd.to_datetime(df_tmp.date+df_tmp.time)
                 df_tmp = df_tmp.set_index('datetime')
                 df_tmp = df_tmp.tz_localize(timezone_source, ambiguous="infer").tz_convert(timezone)
-                df_tmp = df_tmp.drop(["date", "time"], 1)
+                df_tmp = df_tmp.drop(["date", "time"], axis=1)
                 df_tmp = df_tmp.reset_index()
                 df_tmp2 = df_tmp.pivot(index="month", columns="period", values=["datetime", "maxPower"])
                 df_tmp2['cups'] = df_tmp.cups.unique()[0]
                 df_tmp2.columns = [f"{cp[0]}_period_{cp[1]}" for cp in df_tmp2.columns]
-                df_final = df_final.append(df_tmp2)
+                df_tmp2.reset_index(inplace=True)
+                df_final = pd.concat([df_tmp2, df_final], ignore_index=True)
             except Exception as e:
                 print(f"There was an error in the {month}: {e}")
+        df_final.set_index("month", inplace=True)
         df_final.sort_index(inplace=True)
         df_final.reset_index(inplace=True)
         df_final.rename({"month": "datetime"}, axis=1, inplace=True)
@@ -105,9 +107,9 @@ def __consumption_parse__(result: list) -> list:
                 df_tmp = df_tmp.set_index('datetime')
                 df_tmp = df_tmp.tz_localize(timezone_source, ambiguous="infer").tz_convert(timezone)
                 df_tmp = df_tmp.sort_index()
-                df_tmp = df_tmp.drop(["date", "time"], 1)
+                df_tmp = df_tmp.drop(["date", "time"], axis=1)
                 df_tmp = df_tmp.reset_index()
-                df_final = df_final.append(df_tmp)
+                df_final = pd.concat([df_tmp, df_final], ignore_index=True)
             except Exception as e:
                 print(f"There was an error in the {day}: {e}")
         df_final.set_index('datetime', inplace=True)
@@ -210,20 +212,20 @@ class datadis(object):
     @classmethod
     def __login__(cls):
         cls.session = requests.Session()
-        cls.session.headers = datadis.__datadis_headers__()
-        cls.session.get("https://datadis.es/nikola-auth/login", timeout=cls.timeout)
-        first_login = cls.session.post("https://datadis.es/nikola-auth/login",
+        login = cls.session.post("https://datadis.es/nikola-auth/login",
                                        data={"username": cls.username, "password": cls.password})
+        if not login.ok:
+            raise PermissionError(f"Invalid login: {login.reason}")
+        # cls.session.headers = datadis.__datadis_headers__()
+        # cls.session.get("https://datadis.es/nikola-auth/login", timeout=cls.timeout)
+        # soup = BeautifulSoup(first_login.text, 'html.parser')
+        # error = soup.find("label", class_='error')
+        # if error:
+        #     raise PermissionError(error.text.strip())
+        #
+        # second_login = cls.session.post('https://datadis.es/nikola-auth/tokens/login', headers=cls.session.headers,
+        #                                 params=(('username', cls.username), ('password', cls.password)))
 
-        soup = BeautifulSoup(first_login.text, 'html.parser')
-        error = soup.find("label", class_='error')
-        if error:
-            raise PermissionError(error.text.strip())
-
-        second_login = cls.session.post('https://datadis.es/nikola-auth/tokens/login', headers=cls.session.headers,
-                                        params=(('username', cls.username), ('password', cls.password)))
-        if not second_login.ok:
-            raise PermissionError("Invalid user_password for second login")
 
     @classmethod
     def __datadis_request__(cls, url, params, timeout=None):

@@ -6,8 +6,8 @@ import pandas as pd
 f = open("config.json", "r")
 config = json.load(f)
 
-datadis.connection(config['datadis']['username'], config['datadis']['password'], timezone="UTC", timeout=10)
-data = datadis.datadis_query(ENDPOINTS.GET_PUBLIC, start_date=datetime(2020, 10, 1), end_date=datetime(2020, 10, 31),
+datadis.connection(config['datadis']['username'], config['datadis']['password'], timezone="UTC", timeout=100)
+data = datadis.datadis_query(ENDPOINTS.GET_PUBLIC, start_date=datetime(2022, 10, 1), end_date=datetime(2022, 10, 31),
                              page=0,
                              community="09", postal_code="25001")
 
@@ -18,10 +18,10 @@ contract = datadis.datadis_query(ENDPOINTS.GET_CONTRACT, cups=supplies[0]['cups'
                                  distributor_code=supplies[0]['distributorCode'])
 consumption = datadis.datadis_query(ENDPOINTS.GET_CONSUMPTION, cups=supplies[0]['cups'],
                                     distributor_code=supplies[0]['distributorCode'],
-                                    start_date=datetime(2021, 5, 29), end_date=datetime(2021, 5, 29),
+                                    start_date=datetime(2023, 3, 29), end_date=datetime(2023, 3, 29),
                                     measurement_type="0",
                                     point_type=supplies[0]['pointType'])
 
 max_power = datadis.datadis_query(ENDPOINTS.GET_MAX_POWER, cups=supplies[0]['cups'],
-                                  distributor_code=supplies[0]['distributorCode'], start_date=datetime(2021, 8, 1),
-                                  end_date=datetime(2021, 12, 1))
+                                  distributor_code=supplies[0]['distributorCode'], start_date=datetime(2022, 2, 1),
+                                  end_date=datetime(2022, 2, 1))
