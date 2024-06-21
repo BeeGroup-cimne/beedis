@@ -1,10 +1,8 @@
-import time
 from enum import Enum
 import requests
 import json
 from datetime import datetime, timedelta
 import pandas as pd
-from bs4 import BeautifulSoup
 
 
 timezone_source = "Europe/Madrid"
@@ -54,7 +52,7 @@ def __consumption_params__(cups: str, distributor_code: str, start_date: datetim
 
 
 def __max_power_parse__(result: list) -> list:
-    timezone = datadis.timezone
+    timezone = Datadis.timezone
     df = pd.DataFrame(result)
     if not df.empty:
         df_final = pd.DataFrame()
@@ -95,7 +93,7 @@ def __max_power_parse__(result: list) -> list:
 
 
 def __consumption_parse__(result: list) -> list:
-    timezone = datadis.timezone
+    timezone = Datadis.timezone
     df = pd.DataFrame(result)
     if not df.empty:
         df_final = pd.DataFrame()
@@ -173,72 +171,40 @@ class ENDPOINTS(Enum):
         parse = __dummy_parse__
 
 
-class datadis(object):
-    session = None
-    username = None
-    password = None
+class Datadis(object):
+    headers = {}
     timezone = None
     timeout = None
-    @staticmethod
-    def __datadis_headers__() -> dict:
-        return {
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (HTML, like Gecko)'
-                          ' Chrome/85.0.4183.121 Safari/537.36',
-            'accept': 'text/plain',
-            'Host': 'datadis.es',
-            'Connection': 'keep-alive',
-            'Content-Length': '0',
-            'Pragma': 'no-cache',
-            'Cache-Control': 'no-cache',
-            'Origin': 'https://datadis.es',
-            'Sec-Fetch-Site': 'same-origin',
-            'Sec-Fetch-Mode': 'cors',
-            'Sec-Fetch-Dest': 'empty',
-            'Referer': 'https://datadis.es/api-dataset',
-            'Accept-Encoding': 'gzip, deflate, br',
-            'Accept-Language': 'en-US,en;q=0.9',
 
-        }
-
-    # 'Content-Type': 'application/json'
     @classmethod
     def connection(cls, username: str, password: str, timezone="UTC", timeout=None):
-        cls.username = username
-        cls.password = password
         cls.timeout = timeout
         cls.timezone = timezone
-        cls.__login__()
+        cls.headers = {"Authorization": f"Bearer {cls.__login__(username, password)}"}
 
     @classmethod
-    def __login__(cls):
-        cls.session = requests.Session()
-        login = cls.session.post("https://datadis.es/nikola-auth/login",
-                                       data={"username": cls.username, "password": cls.password})
-        if not login.ok:
-            raise PermissionError(f"Invalid login: {login.reason}")
-        # cls.session.headers = datadis.__datadis_headers__()
-        # cls.session.get("https://datadis.es/nikola-auth/login", timeout=cls.timeout)
-        # soup = BeautifulSoup(first_login.text, 'html.parser')
-        # error = soup.find("label", class_='error')
-        # if error:
-        #     raise PermissionError(error.text.strip())
-        #
-        # second_login = cls.session.post('https://datadis.es/nikola-auth/tokens/login', headers=cls.session.headers,
-        #                                 params=(('username', cls.username), ('password', cls.password)))
-
+    def __login__(cls, username, password):
+        token_response = requests.post('https://datadis.es/nikola-auth/tokens/login',
+                                       data={'username': username, 'password': password},
+                                       timeout=cls.timeout)
+        if not token_response.ok:
+            error = token_response.json()
+            raise PermissionError(f"timestamp: {error['timestamp']}, status: {error['status']}, "
+                                  f"error: {error['error']}, "
+                                  f"message: {error['message']}")
+        return token_response.text
 
     @classmethod
-    def __datadis_request__(cls, url, params, timeout=None):
-        response = cls.session.get(url, params=params, timeout=cls.timeout)
-        if response.status_code != 200 or response.text[0:24] == '\n\n\n\n\n\n\n\n\n<!DOCTYPE html>':
-            del cls.session
-            time.sleep(1)
-            cls.__login__()
-            response = cls.session.get(url, params=params, timeout=cls.timeout)
-            if response.status_code != 200:
-                raise ConnectionError(f"The response returned : {response.status_code}: {response.text}")
-            elif response.text[0:24] == '\n\n\n\n\n\n\n\n\n<!DOCTYPE html>':
-                raise ConnectionError(f"The response returned : Error Message")
+    def __datadis_request__(cls, url, params):
+        response = requests.get(url, params=params, timeout=cls.timeout, headers=cls.headers)
+        if not response.ok:
+            try:
+                error = response.json()
+                raise ConnectionError(f"timestamp: {error['timestamp']}, status: {error['status']}, "
+                                      f"error: {error['error']}, "
+                                      f"message: {error['message']}")
+            except json.decoder.JSONDecodeError:
+                raise ConnectionError(response.text)
         return response
 
     @classmethod
@@ -254,7 +220,7 @@ class datadis(object):
             while more_data:
                 print(page)
                 params['page'] = page
-                response = datadis.__datadis_request__(url, params=params)
+                response = cls.__datadis_request__(url, params=params)
                 if len(response.json()) != 0:
                     datadis_dataset.extend(json.loads(response.text.encode("latin_1").decode("utf_8")))
                     page += 1
@@ -262,6 +228,6 @@ class datadis(object):
                     more_data = False
             data = datadis_dataset
         else:
-            response = datadis.__datadis_request__(url, params=params)
+            response = cls.__datadis_request__(url, params=params)
             data = json.loads(response.text.encode("latin_1").decode("utf_8"))
         return parse(data)

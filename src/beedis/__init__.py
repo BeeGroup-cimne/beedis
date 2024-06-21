@@ -1,1 +1,1 @@
-from .datadis import datadis, ENDPOINTS
+from .datadis import Datadis, ENDPOINTS
