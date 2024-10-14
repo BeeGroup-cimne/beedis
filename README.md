@@ -85,3 +85,12 @@ GET_PUBLIC
         - tension: str,
         - timeDiscrimination: str
         - sort: strs
+        
+## Authors
+- Gerard Mor - gmor@cimne.upc.edu
+- Eloi Gabaldón - egabaldon@cimne.upc.edu
+- Jose Manuel Broto - jmbroto@cimne.upc.edu
+- Carolina Sareyan
+- Xavi Cubillas
+  
+Copyright (c) 2024 Gerard Mor, Eloi Gabaldón, Jose Manuel Broto, Carolina Sareyan, Xavi Cubillas
