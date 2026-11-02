@@ -66,6 +66,11 @@ def __max_power_parse__(result: list) -> list:
                 df_tmp = df_tmp.tz_localize(timezone_source, ambiguous="infer").tz_convert(timezone)
                 df_tmp = df_tmp.drop(["date", "time"], axis=1)
                 df_tmp = df_tmp.reset_index()
+                # Datadis may return a zero-value placeholder (1st of the month) plus a real reading for the same
+                # (month, period). Keep one row per period: the highest maxPower (so a real reading wins over a
+                # zero placeholder), breaking ties with the latest datetime.
+                df_tmp = df_tmp.sort_values(["maxPower", "datetime"]).drop_duplicates(["month", "period"],
+                                                                                      keep="last")
                 df_tmp2 = df_tmp.pivot(index="month", columns="period", values=["datetime", "maxPower"])
                 df_tmp2['cups'] = df_tmp.cups.unique()[0]
                 df_tmp2.columns = [f"{cp[0]}_period_{cp[1]}" for cp in df_tmp2.columns]
@@ -73,6 +78,8 @@ def __max_power_parse__(result: list) -> list:
                 df_final = pd.concat([df_tmp2, df_final], ignore_index=True)
             except Exception as e:
                 print(f"There was an error in the {month}: {e}")
+        if df_final.empty:
+            return list()
         df_final.set_index("month", inplace=True)
         df_final.sort_index(inplace=True)
         df_final.reset_index(inplace=True)
